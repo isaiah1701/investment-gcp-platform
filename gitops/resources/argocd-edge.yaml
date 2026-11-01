@@ -3,7 +3,7 @@ kind: ManagedCertificate
 metadata: { name: argocd-managed-cert, namespace: argocd }
 spec: { domains: [argocd.depl0y.site] }
 ---
-apiVersion: networking.gke.io/v1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: argocd
