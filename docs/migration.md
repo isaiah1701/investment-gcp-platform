@@ -19,7 +19,13 @@ These are options to assess after the core platform is stable on GCP. Any AI fea
 
 The migration will proceed in small, verifiable stages:
 
-1. **Assess and map:** document the AWS components, dependencies, data flows, access controls, and operational requirements, then map each to a GCP service or decide whether it should be retired or redesigned.
+1. **Assess and plan:** make an inventory of what exists and how it could move to GCP. Review the platform's GKE, IAM, VPC, and observability needs, along with dependencies and operational requirements. This stage is assessment only; use the findings to plan a gradual migration and rank work by business value and migration effort.
+
+   | Migration effort | High business value | Low business value |
+   | --- | --- | --- |
+   | **Low** | **1 — Prioritise first** | **3 — Take as capacity allows** |
+   | **High** | **2 — Plan as major work** | **4 — Defer or reconsider** |
+
 2. **Build the foundation:** use Terraform to provision the GCP environment, networking, identity, secrets access, and GKE. Keep infrastructure changes reviewable and repeatable.
 3. **Deploy and observe:** deploy the containerized application through the existing GitOps workflow, then confirm health checks, metrics, dashboards, alerting, security controls, and operational procedures before moving traffic.
 4. **Cut over and review:** move traffic in a controlled way, monitor application and platform signals, and verify the user experience and key operational requirements. Record the cutover steps and decision points.
