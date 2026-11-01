@@ -5,6 +5,8 @@ image:
 ingress:
   enabled: true
   host: sky.depl0y.site
+  additionalHosts:
+    - depl0y.site
   staticIpName: sky-ingress-ips-sky-ip
   managedCertificateName: sky-managed-cert
 serviceAccount:

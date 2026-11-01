@@ -17,4 +17,13 @@ spec:
             pathType: Prefix
             backend:
               service: { name: sky, port: { number: {{ .Values.service.port }} } }
+    {{- range .Values.ingress.additionalHosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: sky, port: { number: {{ $.Values.service.port }} } }
+    {{- end }}
 {{- end }}

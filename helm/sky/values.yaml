@@ -11,6 +11,7 @@ resources:
 ingress:
   enabled: true
   host: sky.depl0y.site
+  additionalHosts: []
   staticIpName: sky-public-sky-ip
   managedCertificateName: sky-managed-cert
 serviceAccount:

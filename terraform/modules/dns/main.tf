@@ -28,3 +28,12 @@ resource "google_dns_record_set" "app" {
   ttl          = 300
   rrdatas      = [each.value]
 }
+
+resource "google_dns_record_set" "apex" {
+  project      = var.project_id
+  managed_zone = google_dns_managed_zone.this.name
+  name         = "${trimsuffix(var.domain, ".")}."
+  type         = "A"
+  ttl          = 300
+  rrdatas      = [google_compute_global_address.this["sky"].address]
+}
