@@ -1,0 +1,21 @@
+{
+  "uid": "equity-overview",
+  "title": "Equity Overview",
+  "tags": ["equity", "portfolio"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    { "id": 1, "title": "HTTP request rate", "type": "timeseries", "gridPos": { "x": 0, "y": 0, "w": 12, "h": 7 }, "datasource": { "type": "prometheus", "uid": "prometheus" }, "targets": [{ "expr": "sum(rate(equity_http_requests_total[5m]))", "legendFormat": "requests / sec" }] },
+    { "id": 2, "title": "HTTP error rate", "type": "timeseries", "gridPos": { "x": 12, "y": 0, "w": 12, "h": 7 }, "datasource": { "type": "prometheus", "uid": "prometheus" }, "targets": [{ "expr": "sum(rate(equity_http_requests_total{status=~\"5..\"}[5m])) / clamp_min(sum(rate(equity_http_requests_total[5m])), 0.001)", "legendFormat": "5xx ratio" }] },
+    { "id": 3, "title": "P95 HTTP latency", "type": "timeseries", "gridPos": { "x": 0, "y": 7, "w": 12, "h": 7 }, "datasource": { "type": "prometheus", "uid": "prometheus" }, "targets": [{ "expr": "histogram_quantile(0.95, sum by (le, route) (rate(equity_http_request_duration_seconds_bucket[5m])))", "legendFormat": "{{route}}" }] },
+    { "id": 4, "title": "Alpha Vantage requests", "type": "timeseries", "gridPos": { "x": 12, "y": 7, "w": 12, "h": 7 }, "datasource": { "type": "prometheus", "uid": "prometheus" }, "targets": [{ "expr": "sum by (function, outcome) (rate(equity_alpha_vantage_api_requests_total[5m]))", "legendFormat": "{{function}} · {{outcome}}" }] },
+    { "id": 5, "title": "Alpha Vantage p95 latency", "type": "timeseries", "gridPos": { "x": 0, "y": 14, "w": 12, "h": 7 }, "datasource": { "type": "prometheus", "uid": "prometheus" }, "targets": [{ "expr": "histogram_quantile(0.95, sum by (le, function) (rate(equity_alpha_vantage_request_duration_seconds_bucket[5m])))", "legendFormat": "{{function}}" }] },
+    { "id": 6, "title": "Market data cache", "type": "timeseries", "gridPos": { "x": 12, "y": 14, "w": 12, "h": 7 }, "datasource": { "type": "prometheus", "uid": "prometheus" }, "targets": [{ "expr": "sum by (cache, result) (rate(equity_market_cache_requests_total[5m]))", "legendFormat": "{{cache}} · {{result}}" }] },
+    { "id": 7, "title": "Equity pod CPU and memory", "type": "timeseries", "gridPos": { "x": 0, "y": 21, "w": 12, "h": 7 }, "datasource": { "type": "prometheus", "uid": "prometheus" }, "targets": [{ "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"sky\",container=\"equity\"}[5m]))", "legendFormat": "CPU cores" }, { "expr": "sum(container_memory_working_set_bytes{namespace=\"sky\",container=\"equity\"})", "legendFormat": "memory bytes" }] },
+    { "id": 8, "title": "Equity pod restarts", "type": "timeseries", "gridPos": { "x": 12, "y": 21, "w": 12, "h": 7 }, "datasource": { "type": "prometheus", "uid": "prometheus" }, "targets": [{ "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"sky\",pod=~\"sky-.*\"}[1h]))", "legendFormat": "restarts / hour" }] }
+  ],
+  "annotations": { "list": [] }
+}

@@ -2,6 +2,10 @@ node_modules
 .next
 /app/node_modules
 /app/.next
+/my-apps/*/node_modules
+/my-apps/*/.next
+/my-apps/*/coverage
+/my-apps/*/*.tsbuildinfo
 /app/coverage
 /app/*.tsbuildinfo
 .git

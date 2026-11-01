@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: equity-overview-dashboard
+  labels: { grafana_dashboard: "1" }
+data:
+  equity-overview.json: |-
+{{ .Files.Get "files/equity-dashboard.json" | indent 4 }}

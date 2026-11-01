@@ -14,13 +14,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4
         with: { version: v3.16.4 }
-      - run: helm lint helm/sky -f gitops/values/app-values.yaml
-      - run: helm template sky helm/sky --namespace sky -f gitops/values/app-values.yaml > /tmp/sky-rendered.yaml
+      - run: helm lint helm/equity -f gitops/values/app-values.yaml
+      - run: helm template equity helm/equity --namespace sky -f gitops/values/app-values.yaml > /tmp/equity-rendered.yaml
       - run: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts && helm repo update
       - run: helm template kube-prometheus-stack prometheus-community/kube-prometheus-stack --version 92.17.0 --namespace monitoring -f gitops/values/monitoring-values.yaml > /tmp/monitoring-rendered.yaml
       - run: |
           curl -fsSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz -o /tmp/kubeconform.tgz
           tar -xzf /tmp/kubeconform.tgz -C /tmp kubeconform
           sudo install /tmp/kubeconform /usr/local/bin/kubeconform
-          kubeconform -strict -ignore-missing-schemas /tmp/sky-rendered.yaml /tmp/monitoring-rendered.yaml
-      - run: pip install pyyaml && python -c 'import yaml; [list(yaml.safe_load_all(open(p))) for p in ["gitops/root-app.yaml", "gitops/applications/sky.yaml", "gitops/applications/monitoring.yaml", "gitops/applications/edge.yaml", "gitops/resources/argocd-edge.yaml", "gitops/resources/grafana-edge.yaml", "gitops/values/app-values.yaml", "gitops/values/monitoring-values.yaml"]]'
+          kubeconform -strict -ignore-missing-schemas /tmp/equity-rendered.yaml /tmp/monitoring-rendered.yaml
+      - run: pip install pyyaml && python -c 'import yaml; [list(yaml.safe_load_all(open(p))) for p in ["gitops/root-app.yaml", "gitops/applications/equity.yaml", "gitops/applications/monitoring.yaml", "gitops/applications/edge.yaml", "gitops/resources/argocd-edge.yaml", "gitops/resources/grafana-edge.yaml", "gitops/values/app-values.yaml", "gitops/values/monitoring-values.yaml"]]'

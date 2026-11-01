@@ -1,19 +1,21 @@
-# Troubleshooting
+# Troubleshooting Equity
 
-## Credentials
+## Live prices are unavailable
 
-The gcloud account and Terraform ADC are separate. Check `gcloud auth print-access-token` and `gcloud auth application-default print-access-token`. If ADC is missing, run `gcloud auth application-default login` and finish the browser sign-in.
+- Confirm the app is running with `INVESTMENT_DATA_MODE=live` and the backend has `INVESTMENT_API_KEY` locally or the mounted key file in GKE.
+- `/healthz` and `/readyz` do not depend on Alpha Vantage; a provider outage should not restart the pod.
+- Check the frontend's provider message and request ID. HTTP 429 indicates the daily request limit or a provider plan limit. The free service currently allows 25 API requests per day.
+- The Global Quote response is end-of-day by default. Realtime and 15-minute-delayed US market data require a premium plan.
+- If a quote is shown as stale, it came from the server cache after a provider error; its fetched timestamp remains visible. Live mode never substitutes demo data.
 
-## Workloads
+## No stock results
 
-Connect with `gcloud container clusters get-credentials sky-prod --project project-97e92755-cd8e-4b21-851 --zone europe-west2-a`. Inspect `kubectl get pods -A`, `kubectl -n sky describe pod -l app.kubernetes.io/name=sky`, `kubectl -n sky logs deploy/sky --tail=100` and `kubectl -n argocd get applications`.
+The MVP searches US-listed equities only so portfolio totals remain in USD. Try a company name or ticker with at least two characters. Non-US listings are intentionally filtered out rather than combined using an assumed exchange rate.
 
-For WeatherAPI errors, confirm Secret Manager has an enabled version and the pod mounts `/var/run/secrets/sky/weather-api-key`. Never put the key in logs, Terraform variables or Helm values.
+## History range is limited
 
-## Ingress and TLS
+History uses `TIME_SERIES_DAILY` with `outputsize=compact`, which is available on the free tier and returns the latest 100 observations. Full history is premium. The chart only displays actual returned observations.
 
-Inspect `kubectl get managedcertificate -A` and `kubectl get ingress -A`, then check `dig NS depl0y.site` and `dig A sky.depl0y.site`. Certificates stay provisioning until public delegation points to the reserved IPs. Check Ingress events and `kubectl describe managedcertificate` for issues.
+## GKE secret mount is missing
 
-## Rollback
-
-Revert the Git commit or PR updating `gitops/values/app-values.yaml`; Argo CD restores the previous digest. Review any infrastructure rollback plan before applying it. Do not disable GKE deletion protection just to clear drift.
+The production SecretProviderClass expects the `equity-alpha-vantage-api-key` Secret Manager secret and the existing workload identity service account `sky` in namespace `sky`. The new secret has not been created in this task. Follow [deployment preparation](deployment.md) after rotating the exposed credential; do not point Equity at the weather secret.

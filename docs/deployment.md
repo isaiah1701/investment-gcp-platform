@@ -1,32 +1,41 @@
-# Deployment runbook
+# Equity deployment preparation
 
-## Prerequisites
+## Current state
 
-1. Select gcloud configuration `sky-prod`; confirm project `project-97e92755-cd8e-4b21-851`.
-2. Ensure `gcloud auth print-access-token` and `gcloud auth application-default print-access-token` both succeed. Terraform requires ADC; use `gcloud auth application-default login` and finish browser sign-in if missing.
-3. Run `terraform/bootstrap/bootstrap.sh`; it enables APIs and creates the versioned remote-state bucket.
-4. Copy `terraform/environments/prod/terraform.tfvars.example` to local `terraform.tfvars`, enter the actual state bucket, and keep the file untracked.
-5. Review Terraform plan and apply the prod environment. GKE nodes, NAT, disks, load balancers and traffic have ongoing charges.
-6. Run `scripts/publish-weather-secret.sh` after Terraform has created the Secret Manager secret. It reads the key from root `.env` without printing or storing it in Terraform.
-7. Run the gated `Sky Image Build and Promotion` workflow. It tests, builds, scans, pushes, captures the digest and promotes it in Git.
-8. Run `scripts/bootstrap-argocd.sh`. It installs pinned Argo CD, creates the local Grafana credential secret, registers a read-only GitHub deploy key and applies the root app.
+Equity has been implemented and the local Helm/GitOps/CI configuration is prepared, but it has **not** been built or deployed to GKE. The live cluster still runs the previous Sky application. This task did not push to GitHub, create/push an image, sync Argo CD, mutate Secret Manager, or run Terraform.
 
-## Terraform
+The Helm chart reuses the current `sky` namespace, service/ingress object names, service account, reserved external IP, and DNS names. Terraform does not need to change. The existing `sky-weather-api-key` must not be reused for Alpha Vantage.
 
-Run `terraform -chdir=terraform/environments/prod init -backend-config=bucket=sky-tfstate-project-97e92755-cd8e-4b21-851 -backend-config=prefix=sky/prod`.
+## Production secret
 
-Then run `terraform -chdir=terraform/environments/prod plan -var-file=terraform.tfvars -out=approved.tfplan` and inspect it before `terraform -chdir=terraform/environments/prod apply approved.tfplan`.
+The `equity-alpha-vantage-api-key` secret exists in project `project-97e92755-cd8e-4b21-851`. Its value was read from the ignored repository-root `.env` without printing it, then stored as Secret Manager version 1. The existing `sky` Kubernetes service account has `roles/secretmanager.secretAccessor` on this secret only. The GKE Secret Manager CSI volume exposes it at `/var/run/secrets/equity/investment-api-key`; the backend reads it through `INVESTMENT_API_KEY_FILE`. The key value is not stored in Terraform, Helm, GitOps, CI, or the image.
 
-## GKE access
+For a future key rotation, add a new version without putting the value in shell history or command arguments: use a private temporary file and a hidden terminal prompt with `gcloud secrets versions add equity-alpha-vantage-api-key --project=project-97e92755-cd8e-4b21-851 --data-file=PATH`.
 
-Connect with `gcloud config configurations activate sky-prod` then `gcloud container clusters get-credentials sky-prod --project project-97e92755-cd8e-4b21-851 --zone europe-west2-a`. Check `kubectl get nodes` and `kubectl -n argocd get applications`.
+## Build and release path
 
-Prometheus is private: `kubectl -n monitoring port-forward svc/kube-prometheus-stack-prometheus 9090:9090`.
+The existing GitHub Actions path is configured for `my-apps/investments-app/`: CI runs tests, lint, typechecking and build; the image workflow builds from the repository-root Dockerfile, scans the image, pushes to the existing Artifact Registry repository, then promotes its immutable digest into `gitops/values/app-values.yaml`. Argo CD reads `helm/equity` and the same values file.
 
-Grafana password: `kubectl -n monitoring get secret sky-grafana-admin -o jsonpath='{.data.admin-password}' | base64 --decode; echo`.
+Before a later release, review the Argo migration: the root app replaces the `sky` Argo Application with `equity`, while the chart preserves the Kubernetes resource names and public ingress IP. Reconcile that ownership transition deliberately, then verify certificate status, `/healthz`, `/readyz`, `/metrics`, stock search, quote and history. The managed certificate for `depl0y.site` already exists and is active from the earlier domain setup.
 
-Argo CD initial admin password: `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode; echo`. If rotated, reset it from a trusted local shell with `argocd admin reset-password --account admin`; avoid shell history.
+Do not run `terraform apply` for this application change; Terraform was not modified. Do not sync the Equity GitOps app until the rotated secret and image digest are ready.
 
-## DNS and HTTPS
+## Existing platform access
 
-Terraform creates the zone and A records. Enter every nameserver printed by `terraform output -json dns_name_servers` at the registrar for `depl0y.site`. Verify delegation with `dig NS depl0y.site`. Google-managed certificates become active after DNS points at the reserved ingress IPs.
+The production cluster can be inspected with:
+
+```bash
+gcloud config configurations activate sky-prod
+gcloud container clusters get-credentials sky-prod \
+  --project project-97e92755-cd8e-4b21-851 \
+  --zone europe-west2-a
+kubectl -n argocd get applications
+kubectl -n monitoring port-forward svc/kube-prometheus-stack-prometheus 9090:9090
+```
+
+The current Grafana and Argo CD credentials remain in Kubernetes Secrets:
+
+```bash
+kubectl -n monitoring get secret sky-grafana-admin -o jsonpath='{.data.admin-password}' | base64 --decode; echo
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode; echo
+```

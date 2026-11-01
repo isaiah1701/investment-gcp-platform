@@ -1,26 +1,26 @@
 replicaCount: 1
 image:
-  repository: europe-west2-docker.pkg.dev/project-97e92755-cd8e-4b21-851/sky/sky
-  digest: sha256:73c5ae48f0039d381df1ca77c4ca805e0e95542aa04421b51fb8b1a01edc6e42
+  repository: europe-west2-docker.pkg.dev/project-97e92755-cd8e-4b21-851/sky/equity
+  digest: ""
 ingress:
   enabled: true
-  host: sky.depl0y.site
+  host: depl0y.site
   additionalHosts:
-    - depl0y.site
+    - sky.depl0y.site
   managedCertificateNames:
-    - sky-managed-cert
     - sky-apex-cert
+    - sky-managed-cert
   additionalManagedCertificates:
-    - name: sky-apex-cert
-      domain: depl0y.site
+    - name: sky-managed-cert
+      domain: sky.depl0y.site
   staticIpName: sky-ingress-ips-sky-ip
-  managedCertificateName: sky-managed-cert
+  managedCertificateName: sky-apex-cert
 serviceAccount:
   name: sky
   annotations: {}
 secret:
   projectId: project-97e92755-cd8e-4b21-851
-  name: sky-weather-api-key
+  name: equity-alpha-vantage-api-key
 resources:
   requests: { cpu: 100m, memory: 192Mi }
   limits: { cpu: 500m, memory: 512Mi }

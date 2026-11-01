@@ -3,7 +3,7 @@ import argparse
 import re
 from pathlib import Path
 
-parser = argparse.ArgumentParser(description="Promote an immutable Sky image digest in Helm values.")
+parser = argparse.ArgumentParser(description="Promote an immutable Equity image digest in Helm values.")
 parser.add_argument("--values", default="gitops/values/app-values.yaml")
 parser.add_argument("--digest", required=True)
 args = parser.parse_args()

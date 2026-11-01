@@ -1,16 +1,16 @@
-name: Sky Image Build and Promotion
+name: Equity Image Build and Promotion
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["app/**", "Dockerfile", ".dockerignore", "helm/sky/**"]
+    paths: ["my-apps/investments-app/**", "Dockerfile", ".dockerignore", "helm/equity/**"]
 permissions:
   contents: write
   id-token: write
   pull-requests: write
 jobs:
   app-ci:
-    uses: ./.github/workflows/app-ci.yml
+    uses: ./.github/workflows/equity-ci.yml
   build-scan-push:
     needs: app-ci
     if: ${{ vars.GCP_WIF_PROVIDER != '' && vars.GCP_IMAGE_SERVICE_ACCOUNT != '' }}
@@ -26,11 +26,11 @@ jobs:
       - name: Build candidate image
         run: docker buildx build --load --provenance=false --tag "$IMAGE:$GITHUB_SHA" .
         env:
-          IMAGE: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/sky
+          IMAGE: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/equity
       - name: Scan candidate image
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/sky:${{ github.sha }}
+          image-ref: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/equity:${{ github.sha }}
           format: table
           vuln-type: os,library
           severity: CRITICAL,HIGH
@@ -41,7 +41,7 @@ jobs:
       - name: Push scanned image
         run: docker push "$IMAGE:$GITHUB_SHA"
         env:
-          IMAGE: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/sky
+          IMAGE: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/equity
       - name: Capture immutable digest
         id: image
         run: |
@@ -49,7 +49,7 @@ jobs:
           test -n "$DIGEST"
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
         env:
-          IMAGE: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/sky
+          IMAGE: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/equity
       - name: Promote digest in GitOps values
         run: |
           python3 scripts/update-image-digest.py --values gitops/values/app-values.yaml --digest '${{ steps.image.outputs.digest }}'
@@ -58,9 +58,9 @@ jobs:
           git add gitops/values/app-values.yaml
           git commit -m "chore(gitops): promote Sky image ${GITHUB_SHA::12}"
           if ! git push origin HEAD:main; then
-            BRANCH="promote-sky-${GITHUB_SHA::12}"
+            BRANCH="promote-equity-${GITHUB_SHA::12}"
             git push origin "HEAD:$BRANCH"
-            gh pr create --base main --head "$BRANCH" --title "Promote Sky image ${GITHUB_SHA::12}" --body "Promotes the Trivy-scanned immutable image digest ${{ steps.image.outputs.digest }}."
+            gh pr create --base main --head "$BRANCH" --title "Promote Equity image ${GITHUB_SHA::12}" --body "Promotes the Trivy-scanned immutable Equity image digest ${{ steps.image.outputs.digest }}."
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

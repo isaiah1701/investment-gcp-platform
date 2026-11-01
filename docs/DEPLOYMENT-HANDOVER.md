@@ -1,6 +1,6 @@
 # Sky GKE platform handover
 
-**Status (2026-11-01): GKE infrastructure is provisioned, GitOps is synced, and Sky is running with live WeatherAPI data.** The in-cluster smoke check passed. Public HTTPS is waiting on the domain's nameserver delegation to Cloud DNS; the registrar still delegates to GoDaddy.
+**Status (2026-11-01): GKE infrastructure is provisioned, GitOps is synced, and the existing Sky Weather workload remains live.** DNS is now delegated to Cloud DNS. The apex `https://depl0y.site` returned HTTP 200 with valid TLS on the latest check; the separate Equity replacement in this working tree has not been deployed.
 
 ## Project and infrastructure
 
@@ -15,23 +15,24 @@
 | State bucket | `sky-tfstate-project-97e92755-cd8e-4b21-851` (VERIFIED; `EUROPE-WEST2`, versioning enabled, uniform bucket access, public access prevention enforced) |
 | Required APIs | VERIFIED enabled: Compute, GKE, IAM, STS, Artifact Registry, Secret Manager, Cloud DNS, Storage and Service Usage |
 | GKE cluster | `sky-prod`, zonal `europe-west2-a`, node `e2-standard-4`; Ready |
-| Artifact Registry | `europe-west2-docker.pkg.dev/project-97e92755-cd8e-4b21-851/sky/sky` |
+| Artifact Registry (current Sky image) | `europe-west2-docker.pkg.dev/project-97e92755-cd8e-4b21-851/sky/sky` |
 | Secret Manager secret | `sky-weather-api-key`; version 1 populated from root `.env`, value not logged |
 | Cloud DNS zone | `sky-public`; records and nameservers provisioned |
 | Workload Identity | GKE secret access and GitHub Actions federation configured |
 
 ## DNS and public endpoints
 
-The current public delegation for `depl0y.site` still resolves to `ns71.domaincontrol.com` and `ns72.domaincontrol.com`. Update the domain at GoDaddy to use all four Cloud DNS nameservers below. The Cloud DNS zone already has A records for all three hosts.
+Public delegation for `depl0y.site` now resolves to Google Cloud DNS. The Cloud DNS zone has A records for the apex and all three subdomains.
 
 | Host | Planned URL | State |
 |---|---|---|
-| Sky | <https://sky.depl0y.site> | App healthy; HTTPS awaits DNS delegation and managed certificate |
-| Argo CD | <https://argocd.depl0y.site> | Ingress provisioned; HTTPS awaits DNS delegation and managed certificate |
-| Grafana | <https://grafana.depl0y.site> | Ingress provisioned; HTTPS awaits DNS delegation and managed certificate |
+| Equity target (currently Sky Weather app) | <https://depl0y.site> | HTTPS returned 200; points to Sky until the Equity release is approved and deployed |
+| Sky alias | <https://sky.depl0y.site> | DNS points to the app load balancer; its legacy managed certificate was still `FAILED_NOT_VISIBLE` at the latest GCP status check |
+| Argo CD | <https://argocd.depl0y.site> | HTTPS returned 200 on the latest curl check |
+| Grafana | <https://grafana.depl0y.site> | GCP certificate reports ACTIVE; latest curl still encountered a TLS EOF |
 | Prometheus | Internal only; `kubectl -n monitoring port-forward svc/kube-prometheus-stack-prometheus 9090:9090` | Running; Sky target reports `up=1` |
 
-Cloud DNS nameservers to enter at the registrar:
+Current Cloud DNS nameservers:
 
 ```text
 ns-cloud-c1.googledomains.com.
@@ -42,7 +43,7 @@ ns-cloud-c4.googledomains.com.
 
 Reserved ingress IPs: Sky `136.82.25.190`, Argo CD `136.69.86.228`, Grafana `34.128.158.229`.
 
-Verify delegation with `dig NS depl0y.site`, then wait for Google-managed certificates to become Active. Recheck HTTPS at all three hostnames after DNS and certificate provisioning complete.
+Verify current delegation with `dig NS depl0y.site`. Apex A record resolves to Sky ingress `136.82.25.190`.
 
 ## Authentication and operations
 
@@ -52,7 +53,7 @@ Argo CD user will be `admin`; retrieve the initial password from `argocd-initial
 
 Prometheus port-forward: `kubectl -n monitoring port-forward svc/kube-prometheus-stack-prometheus 9090:9090`.
 
-Grafana dashboard: **Sky Overview** at `/d/sky-overview/sky-overview` after login. Custom alerts: `SkyDown`, `SkyHighErrorRate`, `SkyHighLatency`, `SkyPodRestarts`.
+Grafana dashboard on the deployed cluster: **Sky Overview** at `/d/sky-overview/sky-overview` after login. Its custom alerts are `SkyDown`, `SkyHighErrorRate`, `SkyHighLatency`, and `SkyPodRestarts`.
 
 ## CI/CD and GitOps
 
@@ -76,7 +77,7 @@ Grafana dashboard: **Sky Overview** at `/d/sky-overview/sky-overview` after logi
 
 The actual Git remote is private `isaiah1701/wealth-os-gke-platform` (default branch `main`). Production source and deployment configuration are on `main`; latest infrastructure/GitOps fix before this handover is `a417840`. The GitHub image workflow uses separate WIF identities for Terraform, image publishing and audit. GitHub variables are configured from Terraform outputs.
 
-Sky image digest is pinned in GitOps; Argo CD follows `main` and will reconcile future image promotions automatically.
+The deployed Sky image digest is pinned in GitOps; Argo CD follows `main` and reconciles image promotions automatically. Equity's local GitOps values are not on the remote branch.
 
 ## Cost estimate
 
@@ -89,8 +90,14 @@ Budget roughly **$140–$230/month before NAT traffic, persistent disk, logs, DN
 - Inspect Ingress/certificates with `kubectl get ingress,managedcertificate -A`; check delegation with `dig NS depl0y.site`.
 - Before intentional teardown, change GKE `deletion_protection` to false and remove the Secret Manager `prevent_destroy` guard in a reviewed change, apply those changes, then run `terraform -chdir=terraform/environments/prod destroy -var-file=terraform.tfvars`. After state is no longer needed, remove the bootstrap bucket with `gcloud storage rm -r gs://sky-tfstate-project-97e92755-cd8e-4b21-851`.
 
-## Remaining manual actions
+## Equity migration status
 
-1. At GoDaddy, replace `ns71.domaincontrol.com` and `ns72.domaincontrol.com` with the four `ns-cloud-*.googledomains.com` nameservers listed above.
-2. Wait for DNS delegation and Google-managed certificates to become Active; then verify the three HTTPS endpoints.
-3. Review the kube-bench artifact, especially the worker `eventRecordQPS` finding and GKE managed-service warnings.
+The Equity code, tests, Dockerfile, Helm chart, and CI/GitOps configuration are prepared locally. This task did not commit or push the changes, build or publish an Equity image, deploy to GKE, alter DNS, or create/overwrite a production secret. The cluster still runs Sky Weather.
+
+Before a production migration, rotate the Alpha Vantage key because it appeared in screenshots, create the new `equity-alpha-vantage-api-key` Secret Manager secret, and grant the existing GKE workload identity access. Do not reuse `sky-weather-api-key`. Then review the Argo Application ownership transition (`sky` to `equity`); the Helm chart keeps the existing namespace, service/ingress names and static IP to avoid replacing the load balancer.
+
+## Remaining actions
+
+1. Review the kube-bench artifact, especially the worker `eventRecordQPS` finding and GKE managed-service warnings.
+2. If desired, complete the Equity migration after key rotation and the reviewed secret setup; see [deployment preparation](deployment.md).
+3. Recheck Grafana's TLS service if it is still needed.
