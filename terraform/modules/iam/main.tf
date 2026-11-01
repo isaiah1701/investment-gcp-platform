@@ -1,14 +1,3 @@
-resource "google_project_iam_member" "sky_secret_reader" {
-  project = var.project_id
-  role    = "roles/secretmanager.secretAccessor"
-  member  = "principal://iam.googleapis.com/projects/${var.project_number}/locations/global/workloadIdentityPools/${var.project_id}.svc.id.goog/subject/ns/sky/sa/sky"
-  condition {
-    title       = "Read only Sky weather API secret"
-    description = "Limit Sky to its single runtime secret."
-    expression  = "resource.name == 'projects/${var.project_id}/secrets/${var.secret_name}' || resource.name.startsWith('projects/${var.project_id}/secrets/${var.secret_name}/')"
-  }
-}
-
 resource "google_iam_workload_identity_pool" "github" {
   project                   = var.project_id
   workload_identity_pool_id = "github-actions"

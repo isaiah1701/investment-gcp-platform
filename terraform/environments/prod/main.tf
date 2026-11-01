@@ -29,15 +29,27 @@ module "gke" {
   depends_on         = [module.iam]
 }
 
+# GKE creates its project.svc.id.goog workload identity pool when the cluster
+# is created, so grant the Sky Kubernetes service account access afterwards.
+resource "google_project_iam_member" "sky_secret_reader" {
+  project = var.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "principal://iam.googleapis.com/projects/${data.google_project.current.number}/locations/global/workloadIdentityPools/${var.project_id}.svc.id.goog/subject/ns/sky/sa/sky"
+  condition {
+    title       = "Read only Sky weather API secret"
+    description = "Limit Sky to its single runtime secret."
+    expression  = "resource.name == 'projects/${var.project_id}/secrets/${var.weather_secret_name}' || resource.name.startsWith('projects/${var.project_id}/secrets/${var.weather_secret_name}/')"
+  }
+  depends_on = [module.gke]
+}
+
 module "iam" {
   source               = "../../modules/iam"
   project_id           = var.project_id
-  project_number       = data.google_project.current.number
   github_owner         = var.github_owner
   github_repository    = var.github_repository
   github_repository_id = var.github_repository_id
   github_branch        = var.github_branch
-  secret_name          = var.weather_secret_name
 }
 
 module "secrets" {
