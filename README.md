@@ -4,7 +4,9 @@
 
 Equity is an investment dashboard that helps companies research listed equities, monitor market data, and organize watchlists and portfolio positions for informed decision-making. Built with Next.js and deployed on Google Kubernetes Engine (GKE), it uses a cloud-native foundation designed to scale as business needs and usage grow.
 
-## Demo 
+## Demo
+
+The walkthrough shows Equity’s portfolio dashboard: searching for a stock, reviewing its market data, adding it to a watchlist, and tracking holdings with market value and unrealized profit or loss. The demo uses illustrative prices; portfolio and watchlist data are saved in the browser.
 
 
 
@@ -14,6 +16,8 @@ https://github.com/user-attachments/assets/9e018b59-37ed-4de6-842d-e06cb2aed6db
 
 
 
-## Architecture 
+## Architecture
+
+Equity is a Next.js app packaged as a container and run on Google Kubernetes Engine. GitHub Actions checks the app, builds and scans the image, and records its immutable digest in Git. Argo CD applies the Helm configuration from Git to deploy the app; Terraform manages the supporting cloud infrastructure, identity, secrets access, and DNS. Prometheus and Grafana provide application monitoring.
 
 <img width="1753" height="897" alt="image" src="https://github.com/user-attachments/assets/ea715426-3258-4225-b506-2f73146df6fb" />
