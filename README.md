@@ -21,3 +21,7 @@ https://github.com/user-attachments/assets/9e018b59-37ed-4de6-842d-e06cb2aed6db
 Equity is a Next.js app packaged as a container and run on Google Kubernetes Engine. GitHub Actions checks the app, builds and scans the image, and records its immutable digest in Git. Argo CD applies the Helm configuration from Git to deploy the app; Terraform manages the supporting cloud infrastructure, identity, secrets access, and DNS. Prometheus and Grafana provide application monitoring.
 
 <img width="1753" height="897" alt="image" src="https://github.com/user-attachments/assets/ea715426-3258-4225-b506-2f73146df6fb" />
+
+## Cloud Migration Strategy
+
+The [AWS to GCP migration plan](docs/migration.md) documents the deployment strategy, observability approach, and cutover strategy for moving the platform to Google Cloud. The rollback plan is still to be added.
