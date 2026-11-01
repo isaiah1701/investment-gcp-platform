@@ -1,7 +1,7 @@
 locals {
   name = "sky-${var.environment}"
   labels = {
-    application = "sky"
+    application = "equity"
     environment = var.environment
     managed_by  = "terraform"
   }
@@ -30,13 +30,18 @@ module "gke" {
 }
 
 # GKE creates its project.svc.id.goog workload identity pool when the cluster
-# is created, so grant the Sky Kubernetes service account access afterwards.
-resource "google_secret_manager_secret_iam_member" "sky_secret_reader" {
+# is created, so grant the Equity Kubernetes service account access afterwards.
+resource "google_secret_manager_secret_iam_member" "equity_secret_reader" {
   project    = var.project_id
-  secret_id  = module.secrets.secret_name
+  secret_id  = var.equity_secret_name
   role       = "roles/secretmanager.secretAccessor"
-  member     = "principal://iam.googleapis.com/projects/${data.google_project.current.number}/locations/global/workloadIdentityPools/${var.project_id}.svc.id.goog/subject/ns/sky/sa/sky"
+  member     = "principal://iam.googleapis.com/projects/${data.google_project.current.number}/locations/global/workloadIdentityPools/${var.project_id}.svc.id.goog/subject/ns/app/sa/app"
   depends_on = [module.gke]
+}
+
+moved {
+  from = google_secret_manager_secret_iam_member.sky_secret_reader
+  to   = google_secret_manager_secret_iam_member.equity_secret_reader
 }
 
 module "iam" {

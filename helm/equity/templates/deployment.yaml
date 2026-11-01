@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sky
-  labels: { app.kubernetes.io/name: sky, app.kubernetes.io/component: equity }
+  name: app
+  labels: { app.kubernetes.io/name: equity }
 spec:
   replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: 3
@@ -10,10 +10,10 @@ spec:
     type: RollingUpdate
     rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
   selector:
-    matchLabels: { app.kubernetes.io/name: sky }
+    matchLabels: { app.kubernetes.io/name: equity }
   template:
     metadata:
-      labels: { app.kubernetes.io/name: sky, app.kubernetes.io/component: equity }
+      labels: { app.kubernetes.io/name: equity }
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       nodeSelector:

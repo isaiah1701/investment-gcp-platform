@@ -16,7 +16,7 @@ spec:
       ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: sky
+    namespace: app
   syncPolicy:
     automated: { prune: true, selfHeal: true }
     syncOptions: [CreateNamespace=true]

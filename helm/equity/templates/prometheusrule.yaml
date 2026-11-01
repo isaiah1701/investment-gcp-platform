@@ -28,7 +28,7 @@ spec:
           labels: { severity: warning }
           annotations: { summary: Alpha Vantage requests are failing or rate limited }
         - alert: EquityPodRestarts
-          expr: increase(kube_pod_container_status_restarts_total{namespace="sky",pod=~"sky-.*"}[15m]) > 2
+          expr: increase(kube_pod_container_status_restarts_total{namespace="app",pod=~"app-.*"}[15m]) > 2
           for: 0m
           labels: { severity: warning }
           annotations: { summary: Equity pod restarted more than twice in 15 minutes }
