@@ -72,7 +72,7 @@ Grafana dashboard: **Sky Overview** at `/d/sky-overview/sky-overview` after logi
 | Argo CD reconciliation | VERIFIED: root and child apps synced; monitoring Healthy; Sky/edge are waiting only for DNS-backed managed certificates |
 | Live GKE smoke | VERIFIED: `/healthz`, `/readyz`, `/metrics`, city search and live current/hourly/daily forecast passed through the Sky Service |
 | Prometheus scrape | VERIFIED: `up{job="sky"}` returned `1` |
-| kube-bench | Workflow `41316002749` was running at handover update; check GitHub Actions for final result |
+| kube-bench | Workflow `41316340957` completed; 12 PASS, 1 FAIL, 54 WARN. Report artifact: `kube-bench-results`. The FAIL is worker `eventRecordQPS`; review it alongside the GKE managed-service warnings. |
 
 The actual Git remote is private `isaiah1701/wealth-os-gke-platform` (default branch `main`). Production source and deployment configuration are on `main`; latest infrastructure/GitOps fix before this handover is `a417840`. The GitHub image workflow uses separate WIF identities for Terraform, image publishing and audit. GitHub variables are configured from Terraform outputs.
 
@@ -93,4 +93,4 @@ Budget roughly **$140–$230/month before NAT traffic, persistent disk, logs, DN
 
 1. At GoDaddy, replace `ns71.domaincontrol.com` and `ns72.domaincontrol.com` with the four `ns-cloud-*.googledomains.com` nameservers listed above.
 2. Wait for DNS delegation and Google-managed certificates to become Active; then verify the three HTTPS endpoints.
-3. Check GitHub Actions workflow `41316002749` for the kube-bench result and record it here.
+3. Review the kube-bench artifact, especially the worker `eventRecordQPS` finding and GKE managed-service warnings.
