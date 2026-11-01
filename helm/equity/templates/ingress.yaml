@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: sky
+  name: app
   annotations:
     kubernetes.io/ingress.class: gce
     kubernetes.io/ingress.global-static-ip-name: {{ .Values.ingress.staticIpName | quote }}
@@ -16,7 +16,7 @@ spec:
           - path: /
             pathType: Prefix
             backend:
-              service: { name: sky, port: { number: {{ .Values.service.port }} } }
+              service: { name: app, port: { number: {{ .Values.service.port }} } }
     {{- range .Values.ingress.additionalHosts }}
     - host: {{ . | quote }}
       http:
@@ -24,6 +24,6 @@ spec:
           - path: /
             pathType: Prefix
             backend:
-              service: { name: sky, port: { number: {{ $.Values.service.port }} } }
+              service: { name: app, port: { number: {{ $.Values.service.port }} } }
     {{- end }}
 {{- end }}

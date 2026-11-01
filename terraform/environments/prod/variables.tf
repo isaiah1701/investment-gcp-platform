@@ -26,6 +26,11 @@ variable "weather_secret_name" {
   default = "sky-weather-api-key"
 }
 
+variable "equity_secret_name" {
+  type    = string
+  default = "equity-alpha-vantage-api-key"
+}
+
 variable "cluster_name" {
   type    = string
   default = "sky-prod"

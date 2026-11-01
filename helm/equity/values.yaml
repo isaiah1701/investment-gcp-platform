@@ -11,14 +11,13 @@ resources:
 ingress:
   enabled: true
   host: depl0y.site
-  additionalHosts: [sky.depl0y.site]
+  additionalHosts: []
   staticIpName: sky-ingress-ips-sky-ip
-  managedCertificateName: sky-apex-cert
-  managedCertificateNames: [sky-apex-cert, sky-managed-cert]
-  additionalManagedCertificates:
-    - { name: sky-managed-cert, domain: sky.depl0y.site }
+  managedCertificateName: app-apex-cert
+  managedCertificateNames: [app-apex-cert]
+  additionalManagedCertificates: []
 serviceAccount:
-  name: sky
+  name: app
   annotations: {}
 secret:
   projectId: project-97e92755-cd8e-4b21-851

@@ -4,9 +4,9 @@ metadata:
   name: equity
   labels: { release: kube-prometheus-stack }
 spec:
-  jobLabel: app.kubernetes.io/component
-  namespaceSelector: { matchNames: [sky] }
+  jobLabel: app.kubernetes.io/name
+  namespaceSelector: { matchNames: [app] }
   selector:
-    matchLabels: { app.kubernetes.io/component: equity }
+    matchLabels: { app.kubernetes.io/name: equity }
   endpoints:
     - { port: http, path: /metrics, interval: 30s, scrapeTimeout: 10s }

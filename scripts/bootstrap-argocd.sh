@@ -5,7 +5,7 @@ CLUSTER_NAME="${CLUSTER_NAME:-sky-prod}"
 ZONE="${ZONE:-europe-west2-a}"
 ARGO_VERSION="10.11.6"
 REPO_SSH_URL="git@github.com:isaiah1701/wealth-os-gke-platform.git"
-KEY_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/sky-gitops"
+KEY_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/equity-gitops"
 KEY_FILE="$KEY_DIR/argocd-deploy-key"
 
 command -v gcloud >/dev/null
@@ -53,6 +53,6 @@ kubectl create secret generic sky-source-repository -n argocd \
   | kubectl apply -f -
 
 kubectl apply -f gitops/root-app.yaml
-kubectl wait -n argocd --for=jsonpath='{.status.sync.status}=Synced' application/sky-root --timeout=10m
+kubectl wait -n argocd --for=jsonpath='{.status.sync.status}=Synced' application/app-root --timeout=10m
 kubectl get applications -n argocd
 echo "Argo CD bootstrap completed. The repository key is read-only and stored outside Git."
