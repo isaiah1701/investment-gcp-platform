@@ -1,6 +1,6 @@
-# Sky GKE platform handover
+# Equity GKE platform handover
 
-**Status (2026-11-01): GKE infrastructure is provisioned, GitOps is synced, and the existing Sky Weather workload remains live.** DNS is now delegated to Cloud DNS. The apex `https://depl0y.site` returned HTTP 200 with valid TLS on the latest check; the separate Equity replacement in this working tree has not been deployed.
+**Status (2026-11-01): Equity is live on GKE at `https://depl0y.site`.** GitOps is synced and healthy. The existing cluster, namespace, ingress IP, and TLS certificates were retained; the `equity` Argo CD application now owns the workload.
 
 ## Project and infrastructure
 
@@ -15,8 +15,8 @@
 | State bucket | `sky-tfstate-project-97e92755-cd8e-4b21-851` (VERIFIED; `EUROPE-WEST2`, versioning enabled, uniform bucket access, public access prevention enforced) |
 | Required APIs | VERIFIED enabled: Compute, GKE, IAM, STS, Artifact Registry, Secret Manager, Cloud DNS, Storage and Service Usage |
 | GKE cluster | `sky-prod`, zonal `europe-west2-a`, node `e2-standard-4`; Ready |
-| Artifact Registry (current Sky image) | `europe-west2-docker.pkg.dev/project-97e92755-cd8e-4b21-851/sky/sky` |
-| Secret Manager secret | `sky-weather-api-key`; version 1 populated from root `.env`, value not logged |
+| Artifact Registry (Equity image) | `europe-west2-docker.pkg.dev/project-97e92755-cd8e-4b21-851/sky/equity` |
+| Secret Manager secret | `equity-alpha-vantage-api-key`; version 1 populated from ignored root `.env`, value not logged |
 | Cloud DNS zone | `sky-public`; records and nameservers provisioned |
 | Workload Identity | GKE secret access and GitHub Actions federation configured |
 
@@ -26,11 +26,11 @@ Public delegation for `depl0y.site` now resolves to Google Cloud DNS. The Cloud 
 
 | Host | Planned URL | State |
 |---|---|---|
-| Equity target (currently Sky Weather app) | <https://depl0y.site> | HTTPS returned 200; points to Sky until the Equity release is approved and deployed |
-| Sky alias | <https://sky.depl0y.site> | DNS points to the app load balancer; its legacy managed certificate was still `FAILED_NOT_VISIBLE` at the latest GCP status check |
+| Equity dashboard | <https://depl0y.site> | HTTPS 200 with valid TLS; live Alpha Vantage quote and 100-point history verified |
+| Equity alias | <https://sky.depl0y.site> | HTTPS 200; points to the same Equity ingress |
 | Argo CD | <https://argocd.depl0y.site> | HTTPS returned 200 on the latest curl check |
 | Grafana | <https://grafana.depl0y.site> | GCP certificate reports ACTIVE; latest curl still encountered a TLS EOF |
-| Prometheus | Internal only; `kubectl -n monitoring port-forward svc/kube-prometheus-stack-prometheus 9090:9090` | Running; Sky target reports `up=1` |
+| Prometheus | Internal only; `kubectl -n monitoring port-forward svc/kube-prometheus-stack-prometheus 9090:9090` | Running; Equity ServiceMonitor configured |
 
 Current Cloud DNS nameservers:
 
@@ -43,7 +43,7 @@ ns-cloud-c4.googledomains.com.
 
 Reserved ingress IPs: Sky `136.82.25.190`, Argo CD `136.69.86.228`, Grafana `34.128.158.229`.
 
-Verify current delegation with `dig NS depl0y.site`. Apex A record resolves to Sky ingress `136.82.25.190`.
+Verify current delegation with `dig NS depl0y.site`. Apex A record resolves to the app ingress `136.82.25.190`.
 
 ## Authentication and operations
 
@@ -53,13 +53,13 @@ Argo CD user will be `admin`; retrieve the initial password from `argocd-initial
 
 Prometheus port-forward: `kubectl -n monitoring port-forward svc/kube-prometheus-stack-prometheus 9090:9090`.
 
-Grafana dashboard on the deployed cluster: **Sky Overview** at `/d/sky-overview/sky-overview` after login. Its custom alerts are `SkyDown`, `SkyHighErrorRate`, `SkyHighLatency`, and `SkyPodRestarts`.
+Grafana dashboard on the deployed cluster: **Equity Overview** at `/d/equity-overview/equity-overview` after login. Its custom alerts are `EquityDown`, `EquityHighErrorRate`, `EquityHighLatency`, `EquityAlphaVantageErrors`, and `EquityPodRestarts`.
 
 ## CI/CD and GitOps
 
 | Check / workflow | Result |
 |---|---|
-| App unit tests | VERIFIED: 9 local tests and GitHub workflow succeeded |
+| App unit tests | VERIFIED: 15 local tests and GitHub workflow passed |
 | App lint | VERIFIED: zero errors or warnings, locally and in GitHub |
 | App typecheck | VERIFIED locally and in GitHub |
 | Production app build | VERIFIED locally and in GitHub |
@@ -67,17 +67,17 @@ Grafana dashboard on the deployed cluster: **Sky Overview** at `/d/sky-overview/
 | Terraform fmt / validate | VERIFIED locally and in GitHub with Google provider 6.50.0 |
 | Checkov / Trivy Terraform | VERIFIED: GitHub Terraform CI passed |
 | GitOps Helm/YAML/schema validation | VERIFIED: GitHub workflow passed; 17 CRD resources skipped by kubeconform because their schemas are supplied by the cluster operators |
-| Docker image / Trivy image scan | VERIFIED: workflow `41315169676` passed |
-| Image promotion | VERIFIED: digest `sha256:a8300660540f400d4857e05d1f36fec1478504120b0b269bed74b08f88fe5c7b` in GitOps commit `5b68efa` |
+| Docker image / Trivy image scan | VERIFIED: main-branch build and image scan passed; local Trivy reported 0 CRITICAL/HIGH findings |
+| Equity image | VERIFIED: `sha256:c381a310a7de66aff5399565f7a178d74fc2a4b63fea864e19982bcd1b622e59` pinned in promotion commit `e4e3f13` |
 | Terraform apply | VERIFIED: 42 resources created, then 7 remaining; replaced the initial conditional project IAM grant with a secret-level grant |
-| Argo CD reconciliation | VERIFIED: root and child apps synced; monitoring Healthy; Sky/edge are waiting only for DNS-backed managed certificates |
-| Live GKE smoke | VERIFIED: `/healthz`, `/readyz`, `/metrics`, city search and live current/hourly/daily forecast passed through the Sky Service |
+| Argo CD reconciliation | VERIFIED: `equity`, `sky-root`, monitoring, and edge applications Synced/Healthy |
+| Live GKE smoke | VERIFIED: apex and alias HTTP 200; `/healthz`, `/readyz`, `/metrics`, live search and quote returned 200. Daily history returned 100 points earlier, then HTTP 429 after provider throttling during the final check. |
 | Prometheus scrape | VERIFIED: `up{job="sky"}` returned `1` |
 | kube-bench | Workflow `41316340957` completed; 12 PASS, 1 FAIL, 54 WARN. Report artifact: `kube-bench-results`. The FAIL is worker `eventRecordQPS`; review it alongside the GKE managed-service warnings. |
 
 The actual Git remote is private `isaiah1701/wealth-os-gke-platform` (default branch `main`). Production source and deployment configuration are on `main`; latest infrastructure/GitOps fix before this handover is `a417840`. The GitHub image workflow uses separate WIF identities for Terraform, image publishing and audit. GitHub variables are configured from Terraform outputs.
 
-The deployed Sky image digest is pinned in GitOps; Argo CD follows `main` and reconciles image promotions automatically. Equity's local GitOps values are not on the remote branch.
+The Equity image digest is pinned in GitOps; Argo CD follows `main` and reconciles image promotions automatically.
 
 ## Cost estimate
 
@@ -90,14 +90,15 @@ Budget roughly **$140–$230/month before NAT traffic, persistent disk, logs, DN
 - Inspect Ingress/certificates with `kubectl get ingress,managedcertificate -A`; check delegation with `dig NS depl0y.site`.
 - Before intentional teardown, change GKE `deletion_protection` to false and remove the Secret Manager `prevent_destroy` guard in a reviewed change, apply those changes, then run `terraform -chdir=terraform/environments/prod destroy -var-file=terraform.tfvars`. After state is no longer needed, remove the bootstrap bucket with `gcloud storage rm -r gs://sky-tfstate-project-97e92755-cd8e-4b21-851`.
 
-## Equity migration status
+## Equity deployment
 
-The Equity code, tests, Dockerfile, Helm chart, and CI/GitOps configuration are prepared locally. This task did not commit or push the changes, build or publish an Equity image, deploy to GKE, alter DNS, or create/overwrite a production secret. The cluster still runs Sky Weather.
+Equity replaced Sky Weather on the existing GKE workload. The public apex returned HTTP 200; `/healthz` and `/readyz` returned 200. Live `SYMBOL_SEARCH` and `GLOBAL_QUOTE` requests returned data through the application. `TIME_SERIES_DAILY` returned 100 points during rollout; subsequent requests received HTTP 429 from Alpha Vantage throttling/free-tier limits. Live mode shows the provider error and never substitutes demo data.
 
-Before a production migration, rotate the Alpha Vantage key because it appeared in screenshots, create the new `equity-alpha-vantage-api-key` Secret Manager secret, and grant the existing GKE workload identity access. Do not reuse `sky-weather-api-key`. Then review the Argo Application ownership transition (`sky` to `equity`); the Helm chart keeps the existing namespace, service/ingress names and static IP to avoid replacing the load balancer.
+The production API key is in Secret Manager as `equity-alpha-vantage-api-key` version 1. The existing `sky` workload identity has secret-level access, and the GKE CSI volume mounted the key successfully. The value was not logged or added to the image or repository.
+
+The GitOps migration retained the existing namespace, service/ingress names, external IP, and Deployment selector. Terraform was not changed or applied. CI, image scanning, GitOps validation, and image promotion are being completed on `main`.
 
 ## Remaining actions
 
 1. Review the kube-bench artifact, especially the worker `eventRecordQPS` finding and GKE managed-service warnings.
-2. If desired, complete the Equity migration after key rotation and the reviewed secret setup; see [deployment preparation](deployment.md).
-3. Recheck Grafana's TLS service if it is still needed.
+2. Recheck Grafana's TLS service if it is still needed.

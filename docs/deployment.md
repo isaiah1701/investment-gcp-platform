@@ -1,8 +1,8 @@
-# Equity deployment preparation
+# Equity GKE deployment
 
 ## Current state
 
-Equity has been implemented and the local Helm/GitOps/CI configuration is prepared, but it has **not** been built or deployed to GKE. The live cluster still runs the previous Sky application. This task did not push to GitHub, create/push an image, sync Argo CD, mutate Secret Manager, or run Terraform.
+Equity is deployed at <https://depl0y.site> on the existing `sky-prod` GKE cluster. Argo CD manages the `equity` application in namespace `sky`; the existing ingress IP, service name, and TLS certificates are reused. The deployment uses the immutable image digest in `gitops/values/app-values.yaml`. Terraform was not changed or applied.
 
 The Helm chart reuses the current `sky` namespace, service/ingress object names, service account, reserved external IP, and DNS names. Terraform does not need to change. The existing `sky-weather-api-key` must not be reused for Alpha Vantage.
 
@@ -16,9 +16,9 @@ For a future key rotation, add a new version without putting the value in shell 
 
 The existing GitHub Actions path is configured for `my-apps/investments-app/`: CI runs tests, lint, typechecking and build; the image workflow builds from the repository-root Dockerfile, scans the image, pushes to the existing Artifact Registry repository, then promotes its immutable digest into `gitops/values/app-values.yaml`. Argo CD reads `helm/equity` and the same values file.
 
-Before a later release, review the Argo migration: the root app replaces the `sky` Argo Application with `equity`, while the chart preserves the Kubernetes resource names and public ingress IP. Reconcile that ownership transition deliberately, then verify certificate status, `/healthz`, `/readyz`, `/metrics`, stock search, quote and history. The managed certificate for `depl0y.site` already exists and is active from the earlier domain setup.
+The Argo migration replaced the `sky` child Application with `equity`. The chart preserves the Kubernetes resource names and public ingress IP, including the legacy Deployment selector required for an in-place rollout. `/healthz`, `/readyz`, `/metrics`, stock search, and live quote were verified through the public HTTPS endpoint. Daily history returned 100 points during rollout; later requests hit Alpha Vantage HTTP 429 throttling, which live mode reports without substituting mock data. The managed certificate for `depl0y.site` is active.
 
-Do not run `terraform apply` for this application change; Terraform was not modified. Do not sync the Equity GitOps app until the rotated secret and image digest are ready.
+Do not run `terraform apply` for this application change; Terraform was not modified. For later releases, CI builds and scans the image, promotes its immutable digest in GitOps, and Argo CD reconciles it.
 
 ## Existing platform access
 
