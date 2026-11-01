@@ -1,0 +1,53 @@
+defaultRules:
+  create: false
+alertmanager:
+  enabled: false
+grafana:
+  enabled: true
+  defaultDashboardsEnabled: false
+  admin:
+    existingSecret: sky-grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  ingress: { enabled: false }
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+      provider:
+        allowUiUpdates: false
+        foldersFromFilesStructure: false
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+prometheusOperator:
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+prometheus:
+  ingress: { enabled: false }
+  prometheusSpec:
+    replicas: 1
+    retention: 2d
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+    serviceMonitorSelector: {}
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector: {}
+    ruleNamespaceSelector: {}
+    storageSpec:
+      emptyDir: {}
+    resources:
+      requests: { cpu: 300m, memory: 1Gi }
+      limits: { cpu: 1500m, memory: 2Gi }
+kube-state-metrics:
+  enabled: true
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { cpu: 250m, memory: 256Mi }
+prometheus-node-exporter:
+  enabled: true
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { cpu: 250m, memory: 128Mi }

@@ -1,0 +1,24 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata: { name: argocd-managed-cert, namespace: argocd }
+spec: { domains: [argocd.depl0y.site] }
+---
+apiVersion: networking.gke.io/v1
+kind: Ingress
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: sky-ingress-ips-argocd-ip
+    networking.gke.io/managed-certificates: argocd-managed-cert
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  rules:
+    - host: argocd.depl0y.site
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: argocd-server, port: { number: 80 } }

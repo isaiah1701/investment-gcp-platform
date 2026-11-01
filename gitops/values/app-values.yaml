@@ -1,0 +1,18 @@
+replicaCount: 1
+image:
+  repository: europe-west2-docker.pkg.dev/project-97e92755-cd8e-4b21-851/sky/sky
+  digest: ""
+ingress:
+  enabled: true
+  host: sky.depl0y.site
+  staticIpName: sky-ingress-ips-sky-ip
+  managedCertificateName: sky-managed-cert
+serviceAccount:
+  name: sky
+  annotations: {}
+secret:
+  projectId: project-97e92755-cd8e-4b21-851
+  name: sky-weather-api-key
+resources:
+  requests: { cpu: 100m, memory: 192Mi }
+  limits: { cpu: 500m, memory: 512Mi }

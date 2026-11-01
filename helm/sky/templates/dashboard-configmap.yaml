@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sky-overview-dashboard
+  labels: { grafana_dashboard: "1" }
+data:
+  sky-overview.json: |-
+{{ .Files.Get "files/sky-dashboard.json" | indent 4 }}

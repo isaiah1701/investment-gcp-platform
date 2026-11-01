@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sky
+  labels: { app.kubernetes.io/name: sky }
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  selector:
+    matchLabels: { app.kubernetes.io/name: sky }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: sky }
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: sky
+          image: {{ if .Values.image.digest }}{{ printf "%s@%s" .Values.image.repository .Values.image.digest | quote }}{{ else }}{{ printf "%s:bootstrap" .Values.image.repository | quote }}{{ end }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http, containerPort: {{ .Values.containerPort }}, protocol: TCP }
+          env:
+            - { name: NODE_ENV, value: production }
+            - { name: WEATHER_DATA_MODE, value: live }
+            - { name: PORT, value: "3000" }
+            - { name: HOSTNAME, value: 0.0.0.0 }
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          volumeMounts:
+            - { name: weather-secret, mountPath: /var/run/secrets/sky, readOnly: true }
+            - { name: next-cache, mountPath: /tmp/next-cache }
+            - { name: tmp, mountPath: /tmp }
+          startupProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 15
+            timeoutSeconds: 2
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+            timeoutSeconds: 2
+      volumes:
+        - name: weather-secret
+          csi:
+            driver: secrets-store-gke.csi.k8s.io
+            readOnly: true
+            volumeAttributes: { secretProviderClass: sky-weather-api-key }
+        - { name: next-cache, emptyDir: { sizeLimit: 256Mi } }
+        - { name: tmp, emptyDir: { sizeLimit: 32Mi } }

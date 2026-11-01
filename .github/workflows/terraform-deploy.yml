@@ -1,0 +1,35 @@
+name: Terraform Production Deploy
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: terraform-prod
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_TERRAFORM_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: 1.10.5 }
+      - run: terraform init -backend-config="bucket=${TF_STATE_BUCKET}" -backend-config="prefix=sky/prod"
+        env:
+          TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+        working-directory: terraform/environments/prod
+      - run: terraform plan -out=approved.tfplan -input=false -var="project_id=project-97e92755-cd8e-4b21-851" -var="region=europe-west2" -var="zone=europe-west2-a" -var="terraform_state_bucket=${TF_STATE_BUCKET}" -var="github_owner=${GITHUB_OWNER}" -var="github_repository=${GITHUB_REPOSITORY##*/}" -var="github_repository_id=1441499721"
+        env:
+          TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+        working-directory: terraform/environments/prod
+      - run: terraform show -no-color approved.tfplan
+        working-directory: terraform/environments/prod
+      - run: terraform apply -input=false approved.tfplan
+        working-directory: terraform/environments/prod

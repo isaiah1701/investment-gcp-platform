@@ -1,0 +1,40 @@
+name: GKE Cluster Audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "31 5 * * 1"
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  kube-bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_AUDIT_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: sky-prod
+          location: europe-west2-a
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+      - name: Run supported node and worker checks
+        shell: bash
+        run: |
+          set +e
+          kubectl create namespace kube-bench-audit --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -n kube-bench-audit -f https://raw.githubusercontent.com/aquasecurity/kube-bench/v0.11.2/job.yaml
+          kubectl wait -n kube-bench-audit --for=condition=complete job/kube-bench --timeout=15m
+          kubectl logs -n kube-bench-audit job/kube-bench > kube-bench-results.txt 2>&1
+          STATUS=$?
+          kubectl delete namespace kube-bench-audit --wait=false
+          exit $STATUS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kube-bench-results
+          path: kube-bench-results.txt
+          if-no-files-found: warn

@@ -1,0 +1,16 @@
+node_modules
+.next
+/app/node_modules
+/app/.next
+/app/coverage
+/app/*.tsbuildinfo
+.git
+.env
+.env.*
+!.env.example
+coverage
+*.log
+npm-debug.log*
+.DS_Store
+tests
+README.md

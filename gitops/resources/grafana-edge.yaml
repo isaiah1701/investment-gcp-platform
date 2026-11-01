@@ -1,0 +1,24 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata: { name: grafana-managed-cert, namespace: monitoring }
+spec: { domains: [grafana.depl0y.site] }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: sky-ingress-ips-grafana-ip
+    networking.gke.io/managed-certificates: grafana-managed-cert
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  rules:
+    - host: grafana.depl0y.site
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: kube-prometheus-stack-grafana, port: { number: 80 } }

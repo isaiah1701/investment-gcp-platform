@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs><linearGradient id="sky" x1="7" y1="5" x2="56" y2="61" gradientUnits="userSpaceOnUse"><stop stop-color="#93C5FD"/><stop offset="1" stop-color="#A78BFA"/></linearGradient></defs>
+  <rect x="2" y="2" width="60" height="60" rx="20" fill="#122543"/>
+  <path d="M43.6 38.5a11.4 11.4 0 0 0-21.8-4.8A8.6 8.6 0 0 0 22.5 51h19.2a6.3 6.3 0 0 0 1.9-12.5Z" stroke="url(#sky)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M34 13v5M17 22l3.5 3.5M51 22l-3.5 3.5" stroke="#FDE68A" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

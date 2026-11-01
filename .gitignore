@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform/
+*.pem
+argocd-deploy-key*
