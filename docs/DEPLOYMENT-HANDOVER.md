@@ -48,20 +48,21 @@ Grafana dashboard: **Sky Overview** at `/d/sky-overview/sky-overview` after logi
 
 | Check / workflow | Result |
 |---|---|
-| App unit tests | VERIFIED locally: 9 passed |
-| App lint | VERIFIED locally: zero errors or warnings |
-| App typecheck | VERIFIED locally |
-| Production app build | VERIFIED locally: Next.js production build succeeds |
+| App unit tests | VERIFIED: 9 local tests and GitHub workflow succeeded |
+| App lint | VERIFIED: zero errors or warnings, locally and in GitHub |
+| App typecheck | VERIFIED locally and in GitHub |
+| Production app build | VERIFIED locally and in GitHub |
 | Live WeatherAPI smoke | VERIFIED locally: location search and current/hourly/daily forecast passed; key was not output |
-| Terraform fmt | VERIFIED locally |
-| Terraform validate | VERIFIED locally with Google provider 6.50.0 |
-| Checkov / Trivy Terraform | NOT RUN locally; GitHub workflows configured |
-| Docker image / Trivy image scan | NOT RUN for Artifact Registry; no approved digest |
-| Image promotion | NOT RUN |
+| Terraform fmt / validate | VERIFIED locally and in GitHub with Google provider 6.50.0 |
+| Checkov / Trivy Terraform | VERIFIED: GitHub Terraform CI passed |
+| GitOps Helm/YAML/schema validation | VERIFIED: GitHub workflow passed; 17 CRD resources skipped by kubeconform because their schemas are supplied by the cluster operators |
+| Docker image / Trivy image scan | NOT RUN: gated publish job skipped because GCP WIF variables do not exist until Terraform apply |
+| Image promotion | NOT RUN; no approved digest |
+| Terraform apply | BLOCKED by missing local ADC |
 | Argo CD reconciliation | NOT RUN |
 | kube-bench | NOT RUN |
 
-The actual Git remote is private `isaiah1701/wealth-os-gke-platform` (default branch `main`), initially containing only `README.md`. Push the prepared source and GitOps files before Argo CD can fetch them. The workflows use separate WIF service accounts for Terraform, image publishing and audit. Set GitHub repository variables from Terraform outputs: `GCP_WIF_PROVIDER`, `GCP_TERRAFORM_SERVICE_ACCOUNT`, `GCP_IMAGE_SERVICE_ACCOUNT`, `GCP_AUDIT_SERVICE_ACCOUNT`, `GCP_PROJECT_ID`, and `TF_STATE_BUCKET`.
+The actual Git remote is private `isaiah1701/wealth-os-gke-platform` (default branch `main`). Source and workflows are pushed at `22a0f1ea3c5010520c609b1066cf5c8e656c96a2`. GitHub App CI, Terraform CI (including Checkov and Trivy), and GitOps validation all passed. The image workflow's test job passed and its publish job was skipped because WIF variables are not provisioned yet. The workflows use separate WIF service accounts for Terraform, image publishing and audit. After Terraform apply, run `scripts/configure-github-vars.sh` to set `GCP_WIF_PROVIDER`, the three service-account variables, `GCP_PROJECT_ID`, and `TF_STATE_BUCKET` from real Terraform outputs.
 
 No image digest or GitOps deployment revision exists yet.
 
@@ -78,9 +79,9 @@ Budget roughly **$140–$230/month before NAT traffic, persistent disk, logs, DN
 
 ## Remaining manual actions
 
-1. Complete ADC browser login in WSL.
-2. Review and push the prepared repository changes to `main`; the private repo requires the read-only deploy-key bootstrap for Argo CD.
-3. Run Terraform plan/apply, then publish the existing WeatherAPI key with `scripts/publish-weather-secret.sh`.
-4. Run the image build/promotion workflow and `scripts/bootstrap-argocd.sh`.
-5. Enter actual Cloud DNS nameservers at the registrar. Verify public DNS and TLS after propagation.
-6. Set the listed GitHub variables from Terraform outputs; run workflows and record real statuses and the deployed digest here.
+1. Complete `gcloud auth application-default login --no-browser` in WSL and verify ADC.
+2. Run Terraform init, review the plan, and apply production infrastructure.
+3. Publish the existing WeatherAPI key with `scripts/publish-weather-secret.sh`; run `scripts/configure-github-vars.sh`.
+4. Trigger the image build/promotion workflow, then run `scripts/bootstrap-argocd.sh`. Bootstrap registers a read-only GitHub deploy key for Argo CD.
+5. Enter the actual Cloud DNS nameservers at the registrar. Verify public DNS and TLS after propagation.
+6. Record Terraform outputs, image digest, GitOps revision, and live workload checks here.
