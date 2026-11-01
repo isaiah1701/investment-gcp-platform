@@ -34,15 +34,14 @@ Cloud-to-cloud migration is highly transferable when you understand the systemâ€
 
 ### Local
 
-Requires Node.js 24. The app uses mock market data by default.
+Requires Docker. Build and run from the repository root; the container uses mock market data by default.
 
 ```bash
-cd my-apps/investments-app
-npm ci
-npm run dev
+docker build -t equity:local .
+docker run --rm -p 3000:3000 equity:local
 ```
 
-Open `http://localhost:3000`. To use live market data, configure `INVESTMENT_DATA_MODE=live` and `INVESTMENT_API_KEY` in the repository-root `.env` file.
+Open `http://localhost:3000`. For live market data, set `INVESTMENT_DATA_MODE=live` and `INVESTMENT_API_KEY` in the repository-root `.env` file, then pass it with `docker run --env-file .env`.
 
 ### GCP
 
