@@ -25,3 +25,7 @@ Equity is a Next.js app packaged as a container and run on Google Kubernetes Eng
 ## Cloud Migration Strategy
 
 The [AWS to GCP migration plan](docs/migration.md) documents the deployment strategy, observability approach, and cutover strategy for moving the platform to Google Cloud. The rollback plan is still to be added.
+
+## Trade-offs and Lessons Learned
+
+Cloud-to-cloud migration is highly transferable when you understand the system—its workloads, data flows, identity, networking, and reliability needs—rather than focusing on provider-specific resource names. Start from those requirements, then map each capability to the new cloud. Managed services can reduce operational work, but may increase provider-specific coupling.
