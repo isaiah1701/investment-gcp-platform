@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: europe-west2-docker.pkg.dev/project-97e92755-cd8e-4b21-851/sky/sky
-  digest: ""
+  digest: sha256:a8300660540f400d4857e05d1f36fec1478504120b0b269bed74b08f88fe5c7b
 ingress:
   enabled: true
   host: sky.depl0y.site
