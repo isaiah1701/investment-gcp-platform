@@ -1,6 +1,6 @@
 resource "google_compute_global_address" "this" {
-  for_each     = toset(["app", "argocd", "grafana"])
-  project      = var.project_id
+  for_each = toset(["app", "argocd", "grafana"])
+  project  = var.project_id
   # Preserve the already-reserved application IP while adopting the app key.
   name         = "${var.name}-${each.key == "app" ? "sky" : each.key}-ip"
   address_type = "EXTERNAL"
