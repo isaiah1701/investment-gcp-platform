@@ -16,7 +16,8 @@ spec:
       labels: { app.kubernetes.io/name: sky }
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
-      automountServiceAccountToken: false
+      nodeSelector:
+        iam.gke.io/gke-metadata-server-enabled: "true"
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
