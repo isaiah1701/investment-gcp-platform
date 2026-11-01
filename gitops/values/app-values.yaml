@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: europe-west2-docker.pkg.dev/project-97e92755-cd8e-4b21-851/sky/equity
-  digest: ""
+  digest: sha256:ae835400fb451632c21f501e049c3a979aadf5ee84838db9b9649bddf968d20c
 ingress:
   enabled: true
   host: depl0y.site
