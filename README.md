@@ -29,3 +29,21 @@ The [AWS to GCP migration plan](docs/migration.md) documents the deployment stra
 ## Trade-offs and Lessons Learned
 
 Cloud-to-cloud migration is highly transferable when you understand the system—its workloads, data flows, identity, networking, and reliability needs—rather than focusing on provider-specific resource names. Start from those requirements, then map each capability to the new cloud. Managed services can reduce operational work, but may increase provider-specific coupling.
+
+## Setup
+
+### Local
+
+Requires Node.js 24. The app uses mock market data by default.
+
+```bash
+cd my-apps/investments-app
+npm ci
+npm run dev
+```
+
+Open `http://localhost:3000`. To use live market data, configure `INVESTMENT_DATA_MODE=live` and `INVESTMENT_API_KEY` in the repository-root `.env` file.
+
+### GCP
+
+Follow the [Terraform bootstrap guide](terraform/bootstrap/README.md), configure the required GCP and GitHub Actions identity settings, then run the **Terraform Production Deploy** workflow. After GKE is provisioned, run `scripts/bootstrap-argocd.sh` to install Argo CD and sync the platform.
