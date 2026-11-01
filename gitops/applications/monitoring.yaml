@@ -12,7 +12,7 @@ spec:
       helm:
         releaseName: kube-prometheus-stack
         valueFiles: [$values/gitops/values/monitoring-values.yaml]
-    - repoURL: git@github.com:isaiah1701/wealth-os-gke-platform.git
+    - repoURL: git@github.com:isaiah1701/investment-gcp-platform.git
       targetRevision: main
       ref: values
   destination:

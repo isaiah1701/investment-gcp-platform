@@ -6,12 +6,12 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: git@github.com:isaiah1701/wealth-os-gke-platform.git
+    - repoURL: git@github.com:isaiah1701/investment-gcp-platform.git
       targetRevision: main
       path: helm/equity
       helm:
         valueFiles: [$values/gitops/values/app-values.yaml]
-    - repoURL: git@github.com:isaiah1701/wealth-os-gke-platform.git
+    - repoURL: git@github.com:isaiah1701/investment-gcp-platform.git
       targetRevision: main
       ref: values
   destination:

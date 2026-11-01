@@ -4,7 +4,7 @@ PROJECT_ID="${PROJECT_ID:-project-97e92755-cd8e-4b21-851}"
 CLUSTER_NAME="${CLUSTER_NAME:-sky-prod}"
 ZONE="${ZONE:-europe-west2-a}"
 ARGO_VERSION="10.11.6"
-REPO_SSH_URL="git@github.com:isaiah1701/wealth-os-gke-platform.git"
+REPO_SSH_URL="git@github.com:isaiah1701/investment-gcp-platform.git"
 KEY_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/equity-gitops"
 KEY_FILE="$KEY_DIR/argocd-deploy-key"
 
@@ -35,13 +35,13 @@ fi
 mkdir -p "$KEY_DIR"
 chmod 700 "$KEY_DIR"
 if [[ ! -f "$KEY_FILE" ]]; then
-  if gh repo deploy-key list --repo isaiah1701/wealth-os-gke-platform --json title --jq '.[].title' | grep -Fxq "Sky Argo CD read-only"; then
+  if gh repo deploy-key list --repo isaiah1701/investment-gcp-platform --json title --jq '.[].title' | grep -Fxq "Sky Argo CD read-only"; then
     echo "A Sky Argo CD deploy key already exists but the local private key is missing. Restore it securely before bootstrap." >&2
     exit 1
   fi
   ssh-keygen -q -t ed25519 -N '' -C "sky-argocd-readonly" -f "$KEY_FILE"
   chmod 600 "$KEY_FILE"
-  gh repo deploy-key add "$KEY_FILE.pub" --repo isaiah1701/wealth-os-gke-platform --title "Sky Argo CD read-only"
+  gh repo deploy-key add "$KEY_FILE.pub" --repo isaiah1701/investment-gcp-platform --title "Sky Argo CD read-only"
 fi
 
 kubectl create secret generic sky-source-repository -n argocd \

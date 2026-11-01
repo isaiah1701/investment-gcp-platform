@@ -2,7 +2,7 @@
 set -euo pipefail
 PROJECT_ID="project-97e92755-cd8e-4b21-851"
 STATE_BUCKET="sky-tfstate-${PROJECT_ID}"
-REPO="isaiah1701/wealth-os-gke-platform"
+REPO="isaiah1701/investment-gcp-platform"
 TF_DIR="terraform/environments/prod"
 
 terraform -chdir="$TF_DIR" output >/dev/null

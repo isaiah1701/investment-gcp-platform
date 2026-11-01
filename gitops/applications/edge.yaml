@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: git@github.com:isaiah1701/wealth-os-gke-platform.git
+    repoURL: git@github.com:isaiah1701/investment-gcp-platform.git
     targetRevision: main
     path: gitops/resources
   destination:
