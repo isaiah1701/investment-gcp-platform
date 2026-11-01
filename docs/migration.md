@@ -2,9 +2,18 @@
 
 ## Introduction
 
-This document describes the planned migration of the Equity platform from AWS to Google Cloud Platform (GCP). The goal is to run the application on a secure, observable, and maintainable cloud foundation while making it practical to explore Google's AI ecosystem as the product evolves.
+This plan moves Equity from AWS to Google Cloud Platform (GCP), establishing a secure, observable foundation for the application and future Google Cloud AI features.
 
-GCP provides a natural base for the existing Kubernetes deployment and a path to managed AI services, including Google's Gemini models and the [Gemini Enterprise Agent Platform](https://docs.cloud.google.com/gemini-enterprise-agent-platform/overview), previously known as Vertex AI. These capabilities could support future features such as research assistance or summarising financial information. They are an opportunity for the platform, not a requirement for the initial migration: any AI use would be evaluated separately for usefulness, data handling, cost, and latency before being introduced.
+## Google AI Ecosystem
+
+The migration creates a path to use Google's AI services where they add clear value to Equity:
+
+- **Gemini models and model choice:** the [Gemini Enterprise Agent Platform](https://docs.cloud.google.com/gemini-enterprise-agent-platform/overview), previously known as Vertex AI, provides access to Google's Gemini models and a broader model ecosystem. This gives us a managed place to evaluate models for research assistance and financial information summaries.
+- **Grounded answers:** [Grounding options](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/grounding/overview) can connect model responses to Google Search or approved company data through Agent Search and RAG Engine. For Equity, this could help produce answers with traceable sources instead of unsupported market claims.
+- **AI with analytics data:** [BigQuery AI](https://docs.cloud.google.com/bigquery/docs/ai-introduction) combines analytics, machine learning, vector search, and generative AI functions. It may be useful if the platform later centralizes market or portfolio research data for analysis.
+- **Managed agent lifecycle:** the Agent Platform includes tools for building and operating agents, with security, governance, and observability features. This could support future research workflows without requiring the initial migration to introduce an AI agent.
+
+These are options to assess after the core platform is stable on GCP. Any AI feature will need a defined use case and review of source quality, data access, privacy, latency, and cost before implementation.
 
 ## Migration Approach
 
