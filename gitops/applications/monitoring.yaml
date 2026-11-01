@@ -20,4 +20,4 @@ spec:
     namespace: monitoring
   syncPolicy:
     automated: { prune: true, selfHeal: true }
-    syncOptions: [CreateNamespace=true]
+    syncOptions: [CreateNamespace=true, ServerSideApply=true, SkipDryRunOnMissingResource=true]
