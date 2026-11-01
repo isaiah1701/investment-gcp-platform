@@ -29,8 +29,8 @@ The migration will proceed in small, verifiable stages:
    A possible order is IAM and VPC foundations, then GKE, observability before workload moves, and finally gradual workload migration and cutover. The matrix and dependencies will refine this order during assessment.
 
 2. **Plan the target and execution:** design the target architecture and map existing services to GCP equivalents. Define the foundations, how the new platform will operate, and the data flows and dependencies. Then sequence the migration, write execution runbooks, and specify validation checks and success criteria.
-3. **Build the foundation:** use Terraform to provision the GCP environment, networking, identity, secrets access, and GKE. Keep infrastructure changes reviewable and repeatable.
-4. **Migrate and validate:** move workloads in planned steps using the runbooks. Validate service health, data integrity, security, observability, and application behavior at each step.
-5. **Cut over and review:** move traffic in a controlled way, monitor application and platform signals, and confirm success against the agreed criteria. Record the cutover steps and decision points.
+3. **Provision and prepare:** use Terraform to provision the GCP environment, networking, identity, secrets access, and GKE. Configure dashboards, alerts, and SLO measurement from the plan, then connect AWS and GCP through a traffic controller for the transition.
+4. **Deploy and shift traffic:** use Argo Rollouts for blue-green releases in GKE, while the traffic controller gradually shifts production traffic from AWS to GCP. Check each step against the planned SLOs and rollout metrics; pause or roll traffic back to AWS if thresholds are missed.
+5. **Cut over and optimise:** after all traffic has shifted and the agreed validation window passes, complete the cutover. Use observed SLOs, metrics, and alerts to tune infrastructure and improve observability for ongoing operations.
 
-The detailed deployment, observability, and cutover strategies will be documented alongside this plan. A rollback plan is still to be added before the migration is treated as ready for production cutover.
+The detailed traffic-shift and rollback runbooks, including metric thresholds and decision points, must be completed before production cutover.
