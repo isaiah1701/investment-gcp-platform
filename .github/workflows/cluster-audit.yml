@@ -24,14 +24,19 @@ jobs:
       - name: Run supported node and worker checks
         shell: bash
         run: |
-          set +e
+          set -euo pipefail
+          cleanup() { kubectl delete namespace kube-bench-audit --wait=false >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
           kubectl create namespace kube-bench-audit --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -n kube-bench-audit -f https://raw.githubusercontent.com/aquasecurity/kube-bench/v0.11.2/job.yaml
-          kubectl wait -n kube-bench-audit --for=condition=complete job/kube-bench --timeout=15m
-          kubectl logs -n kube-bench-audit job/kube-bench > kube-bench-results.txt 2>&1
-          STATUS=$?
-          kubectl delete namespace kube-bench-audit --wait=false
-          exit $STATUS
+          curl -fsSL https://raw.githubusercontent.com/aquasecurity/kube-bench/v0.11.2/job-gke.yaml \
+            | sed -e 's|aquasec/kube-bench:latest|aquasec/kube-bench:v0.11.2|' -e 's|gke-1.2.0|gke-1.6.0|' \
+            | kubectl apply -n kube-bench-audit -f -
+          if ! kubectl wait -n kube-bench-audit --for=condition=complete job/kube-bench --timeout=15m; then
+            kubectl logs -n kube-bench-audit job/kube-bench > kube-bench-results.txt 2>&1 || true
+            kubectl describe job kube-bench -n kube-bench-audit >> kube-bench-results.txt 2>&1 || true
+            exit 1
+          fi
+          kubectl logs -n kube-bench-audit job/kube-bench > kube-bench-results.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
