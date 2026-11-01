@@ -7,6 +7,12 @@ ingress:
   host: sky.depl0y.site
   additionalHosts:
     - depl0y.site
+  managedCertificateNames:
+    - sky-managed-cert
+    - sky-apex-cert
+  additionalManagedCertificates:
+    - name: sky-apex-cert
+      domain: depl0y.site
   staticIpName: sky-ingress-ips-sky-ip
   managedCertificateName: sky-managed-cert
 serviceAccount:

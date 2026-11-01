@@ -14,6 +14,8 @@ ingress:
   additionalHosts: []
   staticIpName: sky-public-sky-ip
   managedCertificateName: sky-managed-cert
+  managedCertificateNames: []
+  additionalManagedCertificates: []
 serviceAccount:
   name: sky
   annotations: {}

@@ -5,6 +5,13 @@ metadata:
 spec:
   domains:
     - {{ .Values.ingress.host | quote }}
-    {{- range .Values.ingress.additionalHosts }}
-    - {{ . | quote }}
-    {{- end }}
+{{- range .Values.ingress.additionalManagedCertificates }}
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: {{ .name }}
+spec:
+  domains:
+    - {{ .domain | quote }}
+{{- end }}
