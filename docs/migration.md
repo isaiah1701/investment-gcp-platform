@@ -28,8 +28,9 @@ The migration will proceed in small, verifiable stages:
 
    A possible order is IAM and VPC foundations, then GKE, observability before workload moves, and finally gradual workload migration and cutover. The matrix and dependencies will refine this order during assessment.
 
-2. **Build the foundation:** use Terraform to provision the GCP environment, networking, identity, secrets access, and GKE. Keep infrastructure changes reviewable and repeatable.
-3. **Deploy and observe:** deploy the containerized application through the existing GitOps workflow, then confirm health checks, metrics, dashboards, alerting, security controls, and operational procedures before moving traffic.
-4. **Cut over and review:** move traffic in a controlled way, monitor application and platform signals, and verify the user experience and key operational requirements. Record the cutover steps and decision points.
+2. **Plan the target and execution:** design the target architecture and map existing services to GCP equivalents. Define the foundations, how the new platform will operate, and the data flows and dependencies. Then sequence the migration, write execution runbooks, and specify validation checks and success criteria.
+3. **Build the foundation:** use Terraform to provision the GCP environment, networking, identity, secrets access, and GKE. Keep infrastructure changes reviewable and repeatable.
+4. **Migrate and validate:** move workloads in planned steps using the runbooks. Validate service health, data integrity, security, observability, and application behavior at each step.
+5. **Cut over and review:** move traffic in a controlled way, monitor application and platform signals, and confirm success against the agreed criteria. Record the cutover steps and decision points.
 
 The detailed deployment, observability, and cutover strategies will be documented alongside this plan. A rollback plan is still to be added before the migration is treated as ready for production cutover.
