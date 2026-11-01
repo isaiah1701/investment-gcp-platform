@@ -1,10 +1,10 @@
 name: Terraform CI
 on:
   pull_request:
-    paths: ["terraform/**"]
+    paths: ["terraform/**", ".github/workflows/terraform-ci.yml"]
   push:
     branches: [main]
-    paths: ["terraform/**"]
+    paths: ["terraform/**", ".github/workflows/terraform-ci.yml"]
 permissions:
   contents: read
 jobs:
@@ -19,11 +19,11 @@ jobs:
         working-directory: terraform/environments/prod
       - run: terraform validate
         working-directory: terraform/environments/prod
-      - uses: bridgecrewio/checkov-action@v12
+      - uses: bridgecrewio/checkov-action@v12.1347.0
         with:
           directory: terraform
           soft_fail: true
-      - uses: aquasecurity/trivy-action@0.28.0
+      - uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: terraform

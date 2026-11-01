@@ -28,7 +28,7 @@ jobs:
         env:
           IMAGE: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/sky
       - name: Scan candidate image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: europe-west2-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sky/sky:${{ github.sha }}
           format: table
