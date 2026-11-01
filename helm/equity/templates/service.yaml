@@ -2,9 +2,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: sky
-  labels: { app.kubernetes.io/name: equity }
+  labels: { app.kubernetes.io/name: sky, app.kubernetes.io/component: equity }
 spec:
   type: ClusterIP
-  selector: { app.kubernetes.io/name: equity }
+  selector: { app.kubernetes.io/component: equity }
   ports:
     - { name: http, port: {{ .Values.service.port }}, targetPort: http, protocol: TCP }
